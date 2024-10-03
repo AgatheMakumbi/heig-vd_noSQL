@@ -22,7 +22,17 @@ export default {
     inc() {
       this.total++;
     },
+    iniDatabase(){
+      
+    },
+    fetchData(){
+
+    }
   },
+
+  mounted(){
+    this.iniDatabase()
+  }
 };
 </script>
 
