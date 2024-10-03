@@ -1,9 +1,5 @@
-<template>
-  <div class="about">
-    <h1>This is my Counter page</h1>
-    <button onclick="counter()"></button>
-  </div>
-</template>
+
+
 
 <style>
 @media (min-width: 1024px) {
@@ -15,10 +11,26 @@
 }
 </style>
 
-<script setup lang="ts">
-let number = document.getElementsByTagName('button');
-let index = 0;
-function counter(){
-  index ++;
-}
+<script  lang="ts">
+export default {
+  data() {
+    return {
+      total: 10,
+    };
+  },
+  methods: {
+    inc() {
+      this.total++;
+    },
+  },
+};
 </script>
+
+
+<template>
+  <div>
+    <h1>My counter be like</h1>
+    <p>Counter: {{ total }}</p>
+    <button @click="inc">+1</button>
+  </div>
+</template>
