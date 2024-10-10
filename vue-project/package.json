@@ -12,6 +12,7 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
+    "@types/pouchdb": "^6.4.2",
     "pinia": "^2.1.7",
     "pouchdb": "^9.0.0",
     "vue": "^3.4.29",

@@ -1,6 +1,3 @@
-
-
-
 <style>
 @media (min-width: 1024px) {
   .about {
@@ -11,7 +8,8 @@
 }
 </style>
 
-<script  lang="ts">
+<script lang="ts">
+import PouchDB from "pouchdb";
 export default {
   data() {
     return {
@@ -22,20 +20,22 @@ export default {
     inc() {
       this.total++;
     },
-    iniDatabase(){
-      
-    },
-    fetchData(){
 
-    }
+    iniDatabase() {
+      const db = new PouchDB("http://localhost:5984/post_insta");
+      db.info().then(function (info) {
+        console.log(info);
+      });
+    },
+
+    fetchData() {},
   },
 
-  mounted(){
-    this.iniDatabase()
-  }
+  mounted() {
+    this.iniDatabase();
+  },
 };
 </script>
-
 
 <template>
   <div>
