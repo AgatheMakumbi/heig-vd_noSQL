@@ -10,37 +10,98 @@
 
 <script lang="ts">
 import PouchDB from "pouchdb";
+
+declare interface Post {
+  _id: string,
+  doc: {
+    post_name: string,
+    post_content: string,
+    attributes: {
+      creation_date: string
+      author: string,
+    }
+  }
+}
+
 export default {
   data() {
     return {
-      total: 10,
+      total: 0,
+      postsData: [] as Post[],
+      document: null as Post | null,
+      storage: null as PouchDB.Database | null,
     };
   },
+
+  mounted() {
+    this.iniDatabase();
+    this.fetchData();
+  },
+
   methods: {
     inc() {
       this.total++;
     },
 
     iniDatabase() {
-      const db = new PouchDB("http://localhost:5984/post_insta");
-      db.info().then(function (info) {
-        console.log(info);
-      });
+      //lancer une intisalisation de la base de données
+      // si la connection est ok, alors je fais un fetchdata
+      const db = new PouchDB("http://Dafalgan500:admin@localhost:5984/post_insta");
+      // get basic info about the database
+        
+      if (db) {
+        console.log("Connected to collection 'post'");
+      } else {
+        console.warn("Something went wrong");
+      }
+      this.storage = db;
+    }
+      
+      
     },
 
-    fetchData() {},
+    putDocument(document: Post) {
+      const db = ref(this.storage).value;
+      if (db) {
+        db.put(document).then(() => {
+          console.log('Add ok');
+        }).catch((error) => {
+          console.log('Add ko', error);
+        })
+      }
+    },
+
+    fetchData() {
+      // récupérer tout les documents de ma database
+      const storage = ref(this.storage);
+      const self = this;
+      if (storage.value) {
+        (storage.value).allDocs({
+          include_docs: true,
+          attachments: true
+        }).then(function (result: any) {
+          console.log('fetchData success', result);
+          self.postsData = result.rows;
+        }.bind(this)).catch(function (error: any) {
+          console.log('fetchData error', error);
+        });
+      } 
+    },
   },
 
-  mounted() {
-    this.iniDatabase();
-  },
+  
 };
 </script>
 
 <template>
-  <div>
-    <h1>My counter be like</h1>
-    <p>Counter: {{ total }}</p>
-    <button @click="inc">+1</button>
-  </div>
+ <h1>Nombre de post: {{ postsData.length }}</h1>
+  <ul>
+    <li v-for="post in postsData" :key="post._id">
+      <div class="ucfirst">{{ post.doc.post_name }}<em style="font-size: x-small;"
+          v-if="post.doc.attributes?.creation_date">
+          - {{ post.doc.attributes?.creation_date }}
+        </em>
+      </div>
+    </li>
+  </ul>
 </template>
