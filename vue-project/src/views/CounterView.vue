@@ -117,15 +117,15 @@ export default {
       }
     },
     // methode qui permet de supprimer mon doc de la database
-    deleteFakeData() {
+    deletePost(id: string) {
       const db = ref(this.storage).value;
 
       if (db) {
         let mydoc = this.fakeData();
        //faire une boucle qui récupère tout les id afin de les supprimer à la suite
        //db.collection("posts").doc(mydoc.id).delete()
-       
-        db.get('79051f634e82bd7ad13d029697001232')
+
+        db.get(id)
           .then(function (mydoc) {
             return db.remove(mydoc);
           })
@@ -137,6 +137,85 @@ export default {
           });
       }
     },
+
+    //code donné par le prof
+    async deleteData(id: string, rev: string) {
+        console.log('Call deleteData', rev)
+        const db = ref(this.storage).value
+        if (!db) {
+            console.log('Database not valid')
+            return
+        }
+        try {
+            await db.remove(id, rev)
+            console.log('deleteData success')
+            this.fetchData()
+        } catch (error) {
+            console.log('deleteData error', error)
+        }
+    },
+
+    updateLocalDatabase() {
+        const db = ref(this.storage).value
+        if (db) {
+            db.replicate.from
+                .bind(this)(db)
+                .on('complete', () => {
+                    console.log('on replicate complete')
+                    this.fetchData()
+                })
+                .on('error', function (error) {
+                    console.log('error', error)
+                })
+        }
+    },
+ 
+    updateDistantDatabase() {
+        // TODO
+ 
+        const db = ref(this.storage).value;
+    const remoteDB = 'http://admin:CouchDB@127.0.0.1:5984/post_insta';
+ 
+    if (db) {
+        db.replicate.to(remoteDB)
+            .on('complete', () => {
+                console.log('Replication to remoteDB complete');
+            })
+            .on('error', (error) => {
+                console.error('Error replicating to remoteDB:', error);
+            });
+    } else {
+        console.warn('Local database is not initialized.');
+    }
+    },
+ 
+    watchRemoteDatabase() {
+        // TODO
+ 
+        const db = ref(this.storage).value;
+        const remoteDB = 'http://admin:CouchDB@127.0.0.1:5984/post_insta';
+ 
+    if (db) {
+        const remoteChanges = new PouchDB(remoteDB).changes({
+            since: 'now',
+            live: true,
+            include_docs: true
+        });
+ 
+        remoteChanges
+            .on('change', (change) => {
+                console.log('Change detected in remoteDB:', change);
+                this.fetchData(); // Met à jour les données locales après une modification
+            })
+            .on('error', (err) => {
+                console.error('Error watching remote database:', err);
+            });
+    } else {
+        console.warn('Local database is not initialized.');
+    }
+ 
+    },
+
 
     fetchData() {
       // récupérer tout les documents de ma database
@@ -166,17 +245,20 @@ export default {
 <template>
   <h1>Nombre de post: {{ postsData.length }}</h1>
   <button @click="putFakeData()">Add post</button>
-  <button @click="deleteFakeData()">Delete post</button>
+  <button @click="syncWithRemote()">Sync with remote</button>
   <ul>
     <li v-for="post in postsData" :key="post._id">
       <div class="ucfirst">
         {{ post.doc.post_name
+        }}
+        {{ post.doc.post_content
         }}<em
           style="font-size: x-small"
           v-if="post.doc.attributes?.creation_date"
         >
           - {{ post.doc.attributes?.creation_date }}
         </em>
+        <button @click="deletePost(post._id)" > delete Post</button>
       </div>
     </li>
   </ul>
